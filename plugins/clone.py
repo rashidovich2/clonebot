@@ -21,7 +21,7 @@ async def clone_medias(bot: Bot, m: Message):
     clone_cancel_key[id] = int(m.id)
     #
     start_time = time.time()
-    start_date = datetime.today().strftime("%d/%m/%y")
+    start_date = datetime.now().strftime("%d/%m/%y")
     clone_start_time = datetime.now(pytz.timezone('Asia/Kolkata')).strftime('%I:%M %p')
     #
     file_name = caption = report = str()
@@ -40,28 +40,17 @@ async def clone_medias(bot: Bot, m: Message):
     fn_caption = bool(query.file_caption)
     #
     # Define the clone delay
-    if bool(clone_delay):
-        delay = 10
-    else:
-        delay = 0.25
+    delay = 10 if clone_delay else 0.25
     #
     # The vaulues will be swithed if the start message id is greater than the end message id
     if start_id > end_id:
-        start_id = start_id ^ end_id
-        end_id = end_id ^ start_id
-        start_id = start_id ^ end_id
-    else:
-        pass
+        start_id ^= end_id
+        end_id ^= start_id
+        start_id ^= end_id
     #
     # Creating variables for progress bar and the percentage calculation
-    if not bool(start_id):
-        sp = 0
-    else:
-        sp = start_id
-    if not bool(end_id):
-        ep = end_msg_id
-    else:
-        ep = end_id
+    sp = 0 if not bool(start_id) else start_id
+    ep = end_msg_id if not bool(end_id) else end_id
     #
     await m.edit_text(Presets.INITIAL_MESSAGE_TEXT)
     await asyncio.sleep(1)
@@ -74,16 +63,27 @@ async def clone_medias(bot: Bot, m: Message):
                 messages = await bot.USER.get_messages(source_chat, user_message.id, replies=0)
                 msg_id = messages.id
                 cur_time = time.time()
-                cur_date = datetime.today().strftime("%d/%m/%y")
+                cur_date = datetime.now().strftime("%d/%m/%y")
                 days, hours = await date_time_calc(start_date, start_time, cur_date, cur_time)
                 #
-                report = Presets.CLONE_REPORT.format(time.strftime("%I:%M %p"), source_chat, target_chat,
-                                                     "1" if not bool(start_id) else start_id,
-                                                     end_msg_id if not bool(msg_id) else msg_id,
-                                                     "🟡" if bool(clone_delay) else "🚫",
-                                                     "🟡" if bool(default_caption) else "🚫",
-                                                     "🟡" if bool(fn_caption) else "🚫",
-                                                     int(total_copied), doc, video, audio, photo, voice, text, matching)
+                report = Presets.CLONE_REPORT.format(
+                    time.strftime("%I:%M %p"),
+                    source_chat,
+                    target_chat,
+                    "1" if not bool(start_id) else start_id,
+                    end_msg_id if not bool(msg_id) else msg_id,
+                    "🟡" if clone_delay else "🚫",
+                    "🟡" if default_caption else "🚫",
+                    "🟡" if fn_caption else "🚫",
+                    int(total_copied),
+                    doc,
+                    video,
+                    audio,
+                    photo,
+                    voice,
+                    text,
+                    matching,
+                )
                 # If the user cancelled the clone operation
                 if id not in clone_cancel_key:
                     await save_target_cfg(id, target_chat)
@@ -94,8 +94,6 @@ async def clone_medias(bot: Bot, m: Message):
                     await bot.USER.send_message("me", report, disable_web_page_preview=True)
                     await set_to_defaults(id)
                     return
-                else:
-                    pass
                 for file_type in file_types:
                     media = getattr(messages, file_type, None)
                     if media is not None:
@@ -104,7 +102,6 @@ async def clone_medias(bot: Bot, m: Message):
                         if (uid is not None) and (uid in master_index):
                             matching += 1
                             await m.edit(Presets.DUPLICATE_INDEX.format(matching, msg_id))
-                        # if the duplicate file is not found while cloning
                         else:
                             if uid is not None:
                                 master_index.append(uid) # The unique id of the file is added to the master index list
@@ -114,13 +111,12 @@ async def clone_medias(bot: Bot, m: Message):
                             elif file_type == "voice": voice += 1; file_name = messages.caption
                             elif file_type == "photo": photo += 1; file_name = messages.caption
                             elif file_type == "text": text += 1; file_name = str()
-                            else: pass
                             #
                             if (file_type != "text") and (id in custom_caption):
                                 caption = custom_caption[id]
-                            elif bool(default_caption):
+                            elif default_caption:
                                 caption = messages.caption
-                            elif bool(fn_caption):
+                            elif fn_caption:
                                 try:
                                     caption = str(file_name).rsplit('.', 1)[0]
                                 except Exception:
@@ -169,8 +165,12 @@ async def clone_medias(bot: Bot, m: Message):
                                     await m.delete()
                                 return
                             try:
-                                await msg.edit("🇮🇳 | " + progress if pct <= 100 else Presets.BLOCK,
-                                               reply_markup=reply_markup_stop)
+                                await msg.edit(
+                                    f"🇮🇳 | {progress}"
+                                    if pct <= 100
+                                    else Presets.BLOCK,
+                                    reply_markup=reply_markup_stop,
+                                )
                             except Exception:
                                 pass
                             await asyncio.sleep(delay)
@@ -182,13 +182,6 @@ async def clone_medias(bot: Bot, m: Message):
                                 await bot.USER.send_message("me", report, disable_web_page_preview=True)
                                 await set_to_defaults(id)
                                 return
-                            else:
-                                pass
-                    else:
-                        pass
-            else:
-                pass
-
     # If the clone operation is automatically completed by the bot
     await save_target_cfg(id, target_chat)
     if not int(total_copied):

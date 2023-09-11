@@ -39,15 +39,13 @@ async def find_msg_id(client, id, chat_id):
 async def calc_percentage(sp, ep, msg_id):
     const = pct = int()
     const = (ep - sp) + 1
-    pct = ((msg_id + const) - ep) / const * 100  # Credits to my wife to find a formula !
-    return pct
+    return ((msg_id + const) - ep) / const * 100
 
 
 # Function to show the process graph
 async def calc_progress(pct):
     progress = int()
-    progress = (int(pct)//10 * "◼" + (10-int(pct)//10) * "◻")
-    return progress
+    return (int(pct)//10 * "◼" + (10-int(pct)//10) * "◻")
 
 
 # Function to find DC ID:
@@ -60,11 +58,11 @@ async def find_dc(chat_status):
 
 # Function to save the target chat index.
 async def save_target_cfg(id, target_chat):
-    cfg_save_dir = os.getcwd() + "/" + "cfg" + "/" + str(id)
+    cfg_save_dir = f"{os.getcwd()}/cfg/{str(id)}"
     if not os.path.isdir(cfg_save_dir):
         os.makedirs(cfg_save_dir)
     chat_id = str(target_chat).split('-100')[1]
-    save_csv_path = cfg_save_dir + "/" + str(chat_id) + ".csv"
+    save_csv_path = f"{cfg_save_dir}/{str(chat_id)}.csv"
     with open(save_csv_path, 'w') as file:
         wr = csv.writer(file, quoting=csv.QUOTE_ALL)
         wr.writerow(master_index)
@@ -73,7 +71,7 @@ async def save_target_cfg(id, target_chat):
 # Function to import the cfg data to master list
 async def import_cfg_data(id, target_chat):
     chat_id = str(target_chat).split("-100")[1]
-    cfg_file = os.getcwd() + "/" + "cfg" + "/" + str(id) + "/" + str(chat_id) + ".csv"
+    cfg_file = f"{os.getcwd()}/cfg/{str(id)}/{str(chat_id)}.csv"
     with open(cfg_file, 'r') as file:
         read = list(csv.reader(file))
         index = list(itertools.chain.from_iterable(read))
@@ -87,7 +85,7 @@ async def import_cfg_data(id, target_chat):
 
 # Function to remove the cfg files stored by the user.
 async def del_user_cfg(id):
-    cfg_path = os.getcwd() + "/" + "cfg" + "/" + str(id)
+    cfg_path = f"{os.getcwd()}/cfg/{str(id)}"
     if os.path.exists(cfg_path):
         try:
             shutil.rmtree(cfg_path)
@@ -126,12 +124,11 @@ async def get_chat_type(chat_status):
 # Function to get the status of the chat member in groups and supergroups
 async def get_chat_member_status(member):
     x = member.status
-    chat_member_status = {
-                           x == ChatMemberStatus.OWNER: 'OWNER',
-                           x == ChatMemberStatus.ADMINISTRATOR: 'ADMINISTRATOR',
-                           x == ChatMemberStatus.MEMBER: 'MEMBER',
-                           x == ChatMemberStatus.RESTRICTED: 'RESTRICTED',
-                           x == ChatMemberStatus.LEFT: 'LEFT',
-                           x == ChatMemberStatus.BANNED: 'BANNED'
+    return {
+        x == ChatMemberStatus.OWNER: 'OWNER',
+        x == ChatMemberStatus.ADMINISTRATOR: 'ADMINISTRATOR',
+        x == ChatMemberStatus.MEMBER: 'MEMBER',
+        x == ChatMemberStatus.RESTRICTED: 'RESTRICTED',
+        x == ChatMemberStatus.LEFT: 'LEFT',
+        x == ChatMemberStatus.BANNED: 'BANNED',
     }.get(True)
-    return chat_member_status

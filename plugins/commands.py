@@ -93,9 +93,7 @@ async def force_reply_msg(client: Bot, message: Message):
     elif str(message.text).startswith('-100') and message.text[1:].isdigit():
         chat_info = int(message.text)
     elif ("-100" not in str(message.text)) and str(message.text).isdigit():
-        chat_info = int('-100' + str(message.text))
-    else:
-        pass
+        chat_info = int(f'-100{str(message.text)}')
     bot_msg = await message.reply_text(Presets.WAIT_MSG)
     if message.reply_to_message_id == a:
         try:
@@ -128,14 +126,17 @@ async def force_reply_msg(client: Bot, message: Message):
         await source_cnf_db(id, chat_id)
         await del_from_to_ids(id)
         clone_btn_count[id] = id
-        await bot_msg.edit(Presets.SOURCE_CNF.format(
-            chat_status.title,
-            chat_id,
-            await get_chat_type(chat_status),
-            '@' + str(user_name) if bool(user_name) else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
-            dc_id if bool(dc_id) else "𝘊𝘩𝘢𝘵 𝘱𝘩𝘰𝘵𝘰 𝘳𝘦𝘲𝘶𝘪𝘳𝘦𝘥",
-            chat_status.members_count),
-            reply_markup=reply_markup_close)
+        await bot_msg.edit(
+            Presets.SOURCE_CNF.format(
+                chat_status.title,
+                chat_id,
+                await get_chat_type(chat_status),
+                f'@{str(user_name)}' if bool(user_name) else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
+                dc_id if bool(dc_id) else "𝘊𝘩𝘢𝘵 𝘱𝘩𝘰𝘵𝘰 𝘳𝘦𝘲𝘶𝘪𝘳𝘦𝘥",
+                chat_status.members_count,
+            ),
+            reply_markup=reply_markup_close,
+        )
         await start_options(client, message)
         await find_msg_id(client, id, chat_id)
     elif message.reply_to_message_id == b:
@@ -176,37 +177,46 @@ async def force_reply_msg(client: Bot, message: Message):
             await client.delete_messages(message.chat.id, b)
             await message.delete()
             await target_cnf_db(id, chat_id)
-            await bot_msg.edit(Presets.DEST_CNF.format(
-                chat_status.title,
-                chat_id,
-                await get_chat_type(chat_status),
-                '@' + str(user_name) if bool(user_name) else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
-                dc_id if bool(dc_id) else "𝘊𝘩𝘢𝘵 𝘱𝘩𝘰𝘵𝘰 𝘳𝘦𝘲𝘶𝘪𝘳𝘦𝘥",
-                chat_status.members_count),
-                reply_markup=reply_markup_close)
-            await asyncio.sleep(2)
-            await start_options(client, message)
-        else:
-            if member.privileges is not None and member.privileges.can_post_messages:
-                await client.delete_messages(message.chat.id, b)
-                await message.delete()
-                await target_cnf_db(id, chat_id)
-                await bot_msg.edit(Presets.DEST_CNF.format(
+            await bot_msg.edit(
+                Presets.DEST_CNF.format(
                     chat_status.title,
                     chat_id,
                     await get_chat_type(chat_status),
-                    '@' + str(user_name) if bool(user_name) else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
+                    f'@{str(user_name)}'
+                    if bool(user_name)
+                    else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
                     dc_id if bool(dc_id) else "𝘊𝘩𝘢𝘵 𝘱𝘩𝘰𝘵𝘰 𝘳𝘦𝘲𝘶𝘪𝘳𝘦𝘥",
-                    chat_status.members_count),
-                    reply_markup=reply_markup_close)
-                await asyncio.sleep(2)
-                await start_options(client, message)
-            else:
-                await client.delete_messages(message.chat.id, b)
-                await message.delete()
-                await bot_msg.edit(Presets.IN_CORRECT_PERMISSIONS_MESSAGE_DEST_POSTING)
-                await asyncio.sleep(10)
-                await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
+                    chat_status.members_count,
+                ),
+                reply_markup=reply_markup_close,
+            )
+            await asyncio.sleep(2)
+            await start_options(client, message)
+        elif member.privileges is not None and member.privileges.can_post_messages:
+            await client.delete_messages(message.chat.id, b)
+            await message.delete()
+            await target_cnf_db(id, chat_id)
+            await bot_msg.edit(
+                Presets.DEST_CNF.format(
+                    chat_status.title,
+                    chat_id,
+                    await get_chat_type(chat_status),
+                    f'@{str(user_name)}'
+                    if bool(user_name)
+                    else "𝘗𝘳𝘪𝘷𝘢𝘵𝘦 𝘤𝘩𝘢𝘵",
+                    dc_id if bool(dc_id) else "𝘊𝘩𝘢𝘵 𝘱𝘩𝘰𝘵𝘰 𝘳𝘦𝘲𝘶𝘪𝘳𝘦𝘥",
+                    chat_status.members_count,
+                ),
+                reply_markup=reply_markup_close,
+            )
+            await asyncio.sleep(2)
+            await start_options(client, message)
+        else:
+            await client.delete_messages(message.chat.id, b)
+            await message.delete()
+            await bot_msg.edit(Presets.IN_CORRECT_PERMISSIONS_MESSAGE_DEST_POSTING)
+            await asyncio.sleep(10)
+            await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
     elif message.reply_to_message_id == c:
         msg = int()
         if str(message.text).isdigit():
@@ -227,13 +237,12 @@ async def force_reply_msg(client: Bot, message: Message):
             await message.delete()
             await bot_msg.edit(Presets.FROM_MSG_ID_CNF.format(message.text))
             await asyncio.sleep(3)
-            await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
         else:
             await client.delete_messages(message.chat.id, c)
             await message.delete()
             await bot_msg.edit_text(Presets.INVALID_MSG_ID)
             await asyncio.sleep(5)
-            await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
+        await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
     elif message.reply_to_message_id == d:
         if str(message.text).isdigit():
             if (g != 0) and int(message.text) > g:
@@ -249,13 +258,12 @@ async def force_reply_msg(client: Bot, message: Message):
             await message.delete()
             await bot_msg.edit(Presets.END_MSG_ID_CNF.format(message.text))
             await asyncio.sleep(3)
-            await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
         else:
             await client.delete_messages(message.chat.id, d)
             await message.delete()
             await bot_msg.edit_text(Presets.INVALID_MSG_ID)
             await asyncio.sleep(5)
-            await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
+        await bot_msg.edit_text(Presets.WELCOME_TEXT, reply_markup=reply_markup_home)
     else:
         await client.delete_messages(message.chat.id, message.reply_to_message_id)
         await message.delete()

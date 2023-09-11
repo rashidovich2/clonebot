@@ -75,8 +75,6 @@ async def add_user(id):
             usr = Clonebot(id, 0, 0, 0, 0, 0, 0, 0, 0, False, True, False, 0)
             SESSION.add(usr)
             SESSION.commit()
-        else:
-            pass
 
 
 async def source_force_reply(id, s_chat_msg_id):
@@ -163,7 +161,7 @@ async def change_delay(id):
         try:
             msg = SESSION.query(Clonebot).filter(Clonebot.id == id).first()
             status = bool(msg.delayed_clone)
-            if status is True:
+            if status:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'delayed_clone': False})
             else:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'delayed_clone': True})
@@ -176,7 +174,7 @@ async def opt_caption(id):
         try:
             msg = SESSION.query(Clonebot).filter(Clonebot.id == id).first()
             status = bool(msg.caption)
-            if status is True:
+            if status:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'caption': False})
             else:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'caption': True, 'file_caption': False})
@@ -189,7 +187,7 @@ async def opt_FN_caption(id):
         try:
             msg = SESSION.query(Clonebot).filter(Clonebot.id == id).first()
             status = bool(msg.file_caption)
-            if status is True:
+            if status:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'file_caption': False})
             else:
                 SESSION.query(Clonebot).filter(Clonebot.id == id).update({'file_caption': True, 'caption': False})
